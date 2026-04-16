@@ -144,9 +144,37 @@ if (!empty($foto_profil) && file_exists("uploads/" . $foto_profil)) {
         <div class="bg-[#EBF7EE] rounded-[35px] p-10 border border-white shadow-sm mb-12">
             <h3 class="text-xl font-extrabold text-gray-900 mb-4">Selamat Datang di Trash2Power</h3>
             <p class="text-gray-700 leading-relaxed mb-8 font-medium">
-                Trash2Power adalah platform inovatif yang memungkinkan pengguna mengonversi sampah terpilah menjadi nilai guna,
-                seperti pulsa dan token listrik.
+                Trash2Power adalah platform inovatif yang memungkinkan pengguna mengonversi sampah terpilah menjadi nilai guna, seperti pulsa dan token listrik. Kami berkomitmen untuk mendorong kebiasaan daur ulang yang berkelanjutan melalui teknologi yang mudah diakses.
             </p>
+        </div>
+
+        <div class="bg-[#EBF7EE] rounded-[35px] p-10 border border-white shadow-sm mb-12">
+            <h2 class="text-xl font-extrabold text-gray-900 mb-6">Sampah yang Dapat Diproses</h2>
+            <p class="text-gray-700 leading-relaxed mb-8 font-medium">
+                Untuk memastikan proses verifikasi berjalan optimal, sampah yang akan dipindai harus memenuhi ketentuan berikut:
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Botol Plastik:</h3>
+                    <ul class="text-gray-700 leading-relaxed font-medium space-y-2">
+                        <li>• Dalam kondisi bersih dan bebas dari sisa cairan</li>
+                        <li>• Tidak berbau menyengat atau terkontaminasi</li>
+                        <li>• Barcode atau label masih utuh dan dapat dipindai</li>
+                        <li>• Tidak rusak, sobek, atau terdeformasi berat</li>
+                        <li>• Belum pernah digunakan untuk proses scan sebelumnya</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Kaleng Aluminium:</h3>
+                    <ul class="text-gray-700 leading-relaxed font-medium space-y-2">
+                        <li>• Dalam kondisi bersih dan kering</li>
+                        <li>• Tidak berkarat atau terkontaminasi</li>
+                        <li>• Barcode/label masih tersedia dan dapat dipindai</li>
+                        <li>• Tidak penyok berat atau rusak</li>
+                        <li>• Belum pernah dipindai sebelumnya</li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <div class="bg-[#F1F9F3] rounded-[30px] p-10 flex justify-between items-center border border-white shadow-sm overflow-hidden relative">
