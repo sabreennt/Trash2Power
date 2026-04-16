@@ -70,7 +70,7 @@ if (!$conn->connect_error) {
             </div>
 
             <div class="flex gap-12 font-bold text-gray-500">
-                <a href="home.php" class="hover:text-green-600 transition">Home</a>
+                <a href="home.php" class="hover:text-green-600 transition">Beranda</a>
                 <a href="scan.php" class="hover:text-green-600 transition">Scan</a>
                 <a href="reward.php" class="nav-active pb-2">Reward</a>
             </div>
