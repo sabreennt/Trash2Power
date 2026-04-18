@@ -1,7 +1,10 @@
 <?php
+
+/**
+ * BAGIAN 1: LOGIKA PHP & KONEKSI DATABASE
+ */
 session_start();
 
-// --- 1. KONEKSI DATABASE ---
 $host = 'localhost';
 $user = 'root';
 $pass = '';
@@ -16,34 +19,28 @@ if ($conn->connect_error) {
 $success_msg = "";
 $error_msg = "";
 
-// --- 2. LOGIKA LOGIN ---
-if (isset($_POST['login'])) {
+if (isset($_POST['register'])) {
+    $nama     = mysqli_real_escape_string($conn, $_POST['nama']);
     $email    = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['password']; // Menggunakan plain text sesuai struktur tabel sementara
+    $password = $_POST['password'];
+    $role     = 'warga';
+    $saldo    = 0.00;
 
-    if (!empty($email) && !empty($password)) {
-        $query = "SELECT * FROM users WHERE email = '$email'";
-        $result = $conn->query($query);
+    if (!empty($nama) && !empty($email) && !empty($password)) {
+        $cek_email = "SELECT * FROM users WHERE email = '$email'";
+        $hasil_cek = $conn->query($cek_email);
 
-        if ($result->num_rows > 0) {
-            $user_data = $result->fetch_assoc();
-
-            // Verifikasi password (plain text sesuai struktur tabel)
-            if ($password === $user_data['password']) {
-                // Set Session
-                $_SESSION['id_user'] = $user_data['id_user'];
-                $_SESSION['nama']    = $user_data['nama'];
-                $_SESSION['role']    = $user_data['role'];
-                $_SESSION['saldo']   = $user_data['saldo'];
-
-                // Redirect berdasarkan role (admin/warga)
-                header("Location: beranda.php");
-                exit();
-            } else {
-                $error_msg = "Kata sandi salah!";
-            }
+        if ($hasil_cek->num_rows > 0) {
+            $error_msg = "Email sudah terdaftar!";
         } else {
-            $error_msg = "Email tidak terdaftar!";
+            $query = "INSERT INTO users (email, password, nama, role, saldo) 
+                      VALUES ('$email', '$password', '$nama', '$role', '$saldo')";
+
+            if ($conn->query($query)) {
+                $success_msg = "Akun berhasil dibuat! Silakan masuk.";
+            } else {
+                $error_msg = "Gagal mendaftar: " . $conn->error;
+            }
         }
     } else {
         $error_msg = "Harap isi semua kolom!";
@@ -57,7 +54,7 @@ if (isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk - Trash2Power</title>
+    <title>Daftar - Trash2Power</title>
     <style>
         * {
             margin: 0;
@@ -72,7 +69,7 @@ if (isset($_POST['login'])) {
             background-color: #f9f9f9;
         }
 
-        /* Sisi Kiri - Branding */
+        /* --- Branding Sisi Kiri --- */
         .branding-section {
             flex: 1;
             display: flex;
@@ -110,7 +107,7 @@ if (isset($_POST['login'])) {
             line-height: 1.6;
         }
 
-        /* Sisi Kanan - Form */
+        /* --- Form Sisi Kanan --- */
         .form-section {
             flex: 1;
             background-color: #2d6a4f;
@@ -120,7 +117,7 @@ if (isset($_POST['login'])) {
             padding: 40px;
         }
 
-        .login-card {
+        .register-card {
             background-color: #e9f5f2;
             width: 100%;
             max-width: 450px;
@@ -129,7 +126,7 @@ if (isset($_POST['login'])) {
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
-        .login-card h2 {
+        .register-card h2 {
             color: #1b4332;
             font-size: 28px;
             margin-bottom: 30px;
@@ -172,11 +169,15 @@ if (isset($_POST['login'])) {
             margin-left: 10px;
             margin-right: 0 !important;
             filter: none !important;
-            */
         }
 
         .input-box:focus-within {
             border: 1px solid #52b788;
+        }
+
+        .input-box span {
+            margin-right: 10px;
+            color: #2d6a4f;
         }
 
         .input-box input {
@@ -186,15 +187,6 @@ if (isset($_POST['login'])) {
             width: 100%;
             font-size: 14px;
             color: #333;
-        }
-
-        .forgot-pass {
-            display: block;
-            font-size: 12px;
-            color: #2d6a4f;
-            text-decoration: none;
-            margin-top: 5px;
-            font-weight: 600;
         }
 
         .btn-submit {
@@ -239,7 +231,18 @@ if (isset($_POST['login'])) {
             border: 1px solid #f5c6cb;
         }
 
-        /* --- KHUSUS TAMPILAN HP --- */
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* --- Tampilan HP --- */
         @media (max-width: 820px) {
             body {
                 flex-direction: column;
@@ -249,10 +252,10 @@ if (isset($_POST['login'])) {
                 align-items: center;
             }
 
-            /* --- Area Branding (Logo & Teks) --- */
+            /* --- Area Branding (Logo & Teks) di bagian atas --- */
             .branding-section {
                 background-color: transparent;
-                padding: 30px 10px 20px 10px;
+                padding: 20px 10px;
                 flex: none;
                 width: 100%;
                 text-align: center;
@@ -263,20 +266,18 @@ if (isset($_POST['login'])) {
                 margin-bottom: 15px;
             }
 
-            .branding-section h2 {
-                font-size: 22px;
-                margin-bottom: 5px;
-            }
-
             .branding-section h1 {
                 font-size: 28px;
-                margin-bottom: 12px;
+                margin-bottom: 8px;
+            }
+
+            .branding-section h2 {
+                font-size: 22px;
             }
 
             .branding-section p {
                 font-size: 12px;
-                line-height: 1.5;
-                max-width: 300px;
+                max-width: 280px;
                 margin: 0 auto;
             }
 
@@ -286,39 +287,25 @@ if (isset($_POST['login'])) {
                 padding: 0;
                 flex: none;
                 width: 100%;
-                display: flex;
-                justify-content: center;
+                margin-top: 25px;
             }
 
-            .login-card,
             .register-card {
                 background-color: #ffffff;
                 border-radius: 40px;
                 margin-left: 15px;
                 margin-right: 15px;
                 padding: 30px 30px;
-                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.10);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.10);
                 width: 100%;
-                max-width: 450px;
-                border: 1px solid #f0f0f0;
             }
 
-            .login-card h2,
             .register-card h2 {
-                display: block !important;
+                display: block;
                 text-align: left;
                 font-size: 20px;
-                margin-bottom: 25px;
+                margin-bottom: 20px;
                 color: #1b4332;
-            }
-
-            .form-group {
-                margin-bottom: 18px;
-            }
-
-            .form-group label {
-                margin-left: 10px;
-                font-size: 13px;
             }
 
             .input-box {
@@ -328,43 +315,50 @@ if (isset($_POST['login'])) {
 
             .btn-submit {
                 background-color: #2d6a4f;
-                border-radius: 18px;
-                font-size: 18px;
-                padding: 16px;
+                border-radius: 12px;
+                font-size: 16px;
+                padding: 14px;
                 font-weight: 700;
-                margin-top: 15px;
                 box-shadow: 0 4px 15px rgba(42, 145, 52, 0.3);
-            }
-
-            .footer-text {
-                margin-top: 25px;
-                font-size: 13px;
             }
         }
     </style>
 </head>
 
 <body>
+
     <div class="branding-section">
-        <img src="logosmirk.png" alt="Logo">
+        <img src="logosmile.png" alt="Logo">
         <h2>Trash2Power</h2>
-        <h1>Selamat Datang Kembali!</h1>
-        <p>Jangan lupa untuk mengumpulkan sampah botol plastik dan kaleng alumunium hari ini untuk jadi saldo ya!</p>
+        <h1>Selamat Datang!</h1>
+        <p>Jangan buang sampah sembarangan terus! Mending tukar sampah botol plastik dan kaleng alumunium jadi saldo yuk!</p>
     </div>
 
     <div class="form-section">
-        <div class="login-card">
-            <h2>Masuk Sekarang Yuk!</h2>
+        <div class="register-card">
+            <h2>Daftar Sekarang Yuk!</h2>
 
             <?php if ($error_msg != ""): ?>
                 <div class="alert-error"><?php echo $error_msg; ?></div>
             <?php endif; ?>
 
+            <?php if ($success_msg != ""): ?>
+                <div class="alert-success"><?php echo $success_msg; ?></div>
+            <?php endif; ?>
+
             <form action="" method="POST">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <div class="input-box">
+                        <img src="avatar.png" alt="User Icon">
+                        <input type="text" name="nama" placeholder="Isi nama lengkap kamu" required>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Email</label>
                     <div class="input-box">
-                        <img src="email.png" alt="Email Icon">
+                        <img src="email.png" alt="User Icon">
                         <input type="email" name="email" placeholder="Contoh123@gmail.com" required>
                     </div>
                 </div>
@@ -372,17 +366,16 @@ if (isset($_POST['login'])) {
                 <div class="form-group">
                     <label>Kata Sandi</label>
                     <div class="input-box">
-                        <img src="password.png" alt="Password Icon">
+                        <img src="password.png" alt="User Icon">
                         <input type="password" name="password" id="password" placeholder="Isi kata sandi kamu" required>
                         <img src="close-eye.png" id="eye-icon" class="eye-icon" onclick="toggleVisibility()">
                     </div>
-                    <a href="lupa-password.php" class="forgot-pass">Lupa Kata Sandi?</a>
                 </div>
 
-                <button type="submit" name="login" class="btn-submit">Masuk Sekarang</button>
+                <button type="submit" name="register" class="btn-submit">Daftar Sekarang</button>
 
                 <div class="footer-text">
-                    Belum punya akun? <a href="registrasi.php">Daftar di sini</a>
+                    Sudah punya akun? <a href="login.php">Masuk di sini</a>
                 </div>
             </form>
         </div>

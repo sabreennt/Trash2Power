@@ -1,49 +1,39 @@
 <?php
 session_start();
-
 // --- 1. KONEKSI DATABASE ---
 $host = 'localhost';
 $user = 'root';
 $pass = '';
 $db   = 'trash2power_db';
-
 $conn = new mysqli($host, $user, $pass, $db);
 
 if ($conn->connect_error) {
     die("Koneksi ke database gagal: " . $conn->connect_error);
 }
 
-$success_msg = "";
 $error_msg = "";
+$success_msg = "";
 
-// --- 2. LOGIKA LOGIN ---
-if (isset($_POST['login'])) {
-    $email    = mysqli_real_escape_string($conn, $_POST['email']);
-    $password = $_POST['password']; // Menggunakan plain text sesuai struktur tabel sementara
+// Mengambil email dari URL
+$email_user = isset($_GET['email']) ? mysqli_real_escape_string($conn, $_GET['email']) : '';
 
-    if (!empty($email) && !empty($password)) {
-        $query = "SELECT * FROM users WHERE email = '$email'";
-        $result = $conn->query($query);
+// --- 2. LOGIKA UPDATE PASSWORD ---
+if (isset($_POST['update_password'])) {
+    $pass_baru = $_POST['password_baru'];
+    $konfirmasi = $_POST['konfirmasi_password'];
 
-        if ($result->num_rows > 0) {
-            $user_data = $result->fetch_assoc();
-
-            // Verifikasi password (plain text sesuai struktur tabel)
-            if ($password === $user_data['password']) {
-                // Set Session
-                $_SESSION['id_user'] = $user_data['id_user'];
-                $_SESSION['nama']    = $user_data['nama'];
-                $_SESSION['role']    = $user_data['role'];
-                $_SESSION['saldo']   = $user_data['saldo'];
-
-                // Redirect berdasarkan role (admin/warga)
-                header("Location: beranda.php");
-                exit();
+    if (!empty($pass_baru) && !empty($konfirmasi)) {
+        if ($pass_baru === $konfirmasi) {
+            $query = "UPDATE users SET password = '$pass_baru' WHERE email = '$email_user'";
+            if ($conn->query($query)) {
+                $success_msg = "Kata sandi berhasil diperbarui! Mengalihkan ke halaman login...";
+                // Otomatis pindah ke login.php dalam 3 detik
+                header("refresh:3;url=login.php");
             } else {
-                $error_msg = "Kata sandi salah!";
+                $error_msg = "Gagal memperbarui kata sandi: " . $conn->error;
             }
         } else {
-            $error_msg = "Email tidak terdaftar!";
+            $error_msg = "Konfirmasi kata sandi tidak cocok!";
         }
     } else {
         $error_msg = "Harap isi semua kolom!";
@@ -57,7 +47,7 @@ if (isset($_POST['login'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk - Trash2Power</title>
+    <title>Reset Sandi - Trash2Power</title>
     <style>
         * {
             margin: 0;
@@ -72,7 +62,7 @@ if (isset($_POST['login'])) {
             background-color: #f9f9f9;
         }
 
-        /* Sisi Kiri - Branding */
+        /* --- Branding Sisi Kiri --- */
         .branding-section {
             flex: 1;
             display: flex;
@@ -91,7 +81,7 @@ if (isset($_POST['login'])) {
 
         .branding-section h2 {
             color: #52b788;
-            font-size: 30px;
+            font-size: 22px;
             letter-spacing: 1px;
             margin-bottom: 10px;
         }
@@ -110,7 +100,7 @@ if (isset($_POST['login'])) {
             line-height: 1.6;
         }
 
-        /* Sisi Kanan - Form */
+        /* --- Form Sisi Kanan --- */
         .form-section {
             flex: 1;
             background-color: #2d6a4f;
@@ -120,7 +110,7 @@ if (isset($_POST['login'])) {
             padding: 40px;
         }
 
-        .login-card {
+        .reset-card {
             background-color: #e9f5f2;
             width: 100%;
             max-width: 450px;
@@ -129,11 +119,18 @@ if (isset($_POST['login'])) {
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
-        .login-card h2 {
+        .reset-card h2 {
             color: #1b4332;
             font-size: 28px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             font-weight: 700;
+        }
+
+        .reset-card .info-text {
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 25px;
+            line-height: 1.4;
         }
 
         .form-group {
@@ -172,7 +169,6 @@ if (isset($_POST['login'])) {
             margin-left: 10px;
             margin-right: 0 !important;
             filter: none !important;
-            */
         }
 
         .input-box:focus-within {
@@ -186,15 +182,6 @@ if (isset($_POST['login'])) {
             width: 100%;
             font-size: 14px;
             color: #333;
-        }
-
-        .forgot-pass {
-            display: block;
-            font-size: 12px;
-            color: #2d6a4f;
-            text-decoration: none;
-            margin-top: 5px;
-            font-weight: 600;
         }
 
         .btn-submit {
@@ -239,7 +226,18 @@ if (isset($_POST['login'])) {
             border: 1px solid #f5c6cb;
         }
 
-        /* --- KHUSUS TAMPILAN HP --- */
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* --- Tampilan HP --- */
         @media (max-width: 820px) {
             body {
                 flex-direction: column;
@@ -290,8 +288,7 @@ if (isset($_POST['login'])) {
                 justify-content: center;
             }
 
-            .login-card,
-            .register-card {
+            .reset-card {
                 background-color: #ffffff;
                 border-radius: 40px;
                 margin-left: 15px;
@@ -303,12 +300,11 @@ if (isset($_POST['login'])) {
                 border: 1px solid #f0f0f0;
             }
 
-            .login-card h2,
-            .register-card h2 {
+            .reset-card h2 {
                 display: block !important;
                 text-align: left;
                 font-size: 20px;
-                margin-bottom: 25px;
+                margin-bottom: 10px;
                 color: #1b4332;
             }
 
@@ -346,52 +342,59 @@ if (isset($_POST['login'])) {
 
 <body>
     <div class="branding-section">
-        <img src="logosmirk.png" alt="Logo">
+        <img src="logoxd.png" alt="Logo">
         <h2>Trash2Power</h2>
-        <h1>Selamat Datang Kembali!</h1>
-        <p>Jangan lupa untuk mengumpulkan sampah botol plastik dan kaleng alumunium hari ini untuk jadi saldo ya!</p>
+        <h1>Satu Langkah Lagi!</h1>
+        <p>Jangan lupa passwordnya dicatat dan disimpan supaya kamu tidak lupa lagi ya!</p>
     </div>
 
     <div class="form-section">
-        <div class="login-card">
-            <h2>Masuk Sekarang Yuk!</h2>
+        <div class="reset-card">
+            <h2>Buat Sandi Baru Ya!</h2>
+            <p class="info-text">Halo <strong><?php echo htmlspecialchars($email_user); ?></strong>, buat kata sandi baru yang kuat untuk akun Trash2Power kamu.</p>
 
             <?php if ($error_msg != ""): ?>
                 <div class="alert-error"><?php echo $error_msg; ?></div>
             <?php endif; ?>
 
-            <form action="" method="POST">
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-box">
-                        <img src="email.png" alt="Email Icon">
-                        <input type="email" name="email" placeholder="Contoh123@gmail.com" required>
+            <?php if ($success_msg != ""): ?>
+                <div class="alert-success"><?php echo $success_msg; ?></div>
+            <?php endif; ?>
+
+            <?php if ($success_msg == ""): ?>
+                <form action="" method="POST">
+                    <div class="form-group">
+                        <label>Kata Sandi Baru</label>
+                        <div class="input-box">
+                            <img src="password.png" alt="Password Icon">
+                            <input type="password" name="password_baru" id="pass1" placeholder="Isi kata sandi baru kamu" required>
+                            <img src="close-eye.png" id="eye1" class="eye-icon" onclick="toggleVisibility('pass1', 'eye1')">
+                        </div>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label>Kata Sandi</label>
-                    <div class="input-box">
-                        <img src="password.png" alt="Password Icon">
-                        <input type="password" name="password" id="password" placeholder="Isi kata sandi kamu" required>
-                        <img src="close-eye.png" id="eye-icon" class="eye-icon" onclick="toggleVisibility()">
+                    <div class="form-group">
+                        <label>Konfirmasi Kata Sandi</label>
+                        <div class="input-box">
+                            <img src="password.png" alt="Password Icon">
+                            <input type="password" name="konfirmasi_password" id="pass2" placeholder="Konfirmasi kata sandi baru" required>
+                            <img src="close-eye.png" id="eye2" class="eye-icon" onclick="toggleVisibility('pass2', 'eye2')">
+                        </div>
                     </div>
-                    <a href="lupa-password.php" class="forgot-pass">Lupa Kata Sandi?</a>
-                </div>
 
-                <button type="submit" name="login" class="btn-submit">Masuk Sekarang</button>
+                    <button type="submit" name="update_password" class="btn-submit">Simpan Perubahan</button>
+                </form>
+            <?php endif; ?>
 
-                <div class="footer-text">
-                    Belum punya akun? <a href="registrasi.php">Daftar di sini</a>
-                </div>
-            </form>
+            <div class="footer-text">
+                <a href="login.php">Kembali ke Masuk</a>
+            </div>
         </div>
     </div>
 
     <script>
-        function toggleVisibility() {
-            var x = document.getElementById("password");
-            var icon = document.getElementById("eye-icon");
+        function toggleVisibility(passId, eyeId) {
+            var x = document.getElementById(passId);
+            var icon = document.getElementById(eyeId);
 
             if (x.type === "password") {
                 x.type = "text";
