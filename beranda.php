@@ -1,14 +1,29 @@
 <?php
 session_start();
+
 // 1. Koneksi Database
 $host = "127.0.0.1";
 $user = "root";
 $pass = "";
 $db   = "trash2power_db";
 
-$conn = @new mysqli($host, $user, $pass, $db);
+// Menggunakan mysqli tanpa @ agar error bisa terlihat saat didebug
+$conn = new mysqli($host, $user, $pass, $db);
 
-// Inisialisasi Data (Default)
+// Cek Koneksi
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// 2. Proteksi Login & Ambil ID User
+// Jika session kosong, arahkan ke login.php agar tidak error di beranda
+if (!isset($_SESSION['id_user'])) {
+    header("Location: login.php");
+    exit;
+}
+$id_user = $_SESSION['id_user'];
+
+// Inisialisasi Data Default
 $nama_user = "Pengguna";
 $saldo = 0;
 $total_botol = 0;
@@ -16,30 +31,38 @@ $total_kaleng = 0;
 $foto_profil = "";
 $gender = "";
 
-if (!$conn->connect_error) {
-    $id_user = $_SESSION['id_user'] ?? 1;
-
-    $q_user = $conn->query("SELECT nama, saldo, gender, foto_profil FROM users WHERE id_user = $id_user");
-    if ($row = $q_user->fetch_assoc()) {
-        $nama_user = $row['nama'];
-        $saldo = $row['saldo'];
-        $gender = $row['gender'];
-        $foto_profil = $row['foto_profil'];
-    }
-
-    $q_botol = $conn->query("SELECT SUM(jumlah_sampah) as total FROM setoran WHERE id_warga = $id_user AND id_kategori = 1");
-    $total_botol = $q_botol->fetch_assoc()['total'] ?? 0;
-
-    $q_kaleng = $conn->query("SELECT SUM(jumlah_sampah) as total FROM setoran WHERE id_warga = $id_user AND id_kategori = 2");
-    $total_kaleng = $q_kaleng->fetch_assoc()['total'] ?? 0;
+// 3. Ambil Data User
+$q_user = $conn->query("SELECT nama, saldo, gender, foto_profil FROM users WHERE id_user = $id_user");
+if ($row = $q_user->fetch_assoc()) {
+    $nama_user = $row['nama'];
+    $saldo = $row['saldo'];
+    $gender = $row['gender'];
+    $foto_profil = $row['foto_profil'];
 }
 
-if (!empty($foto_profil) && file_exists("uploads/" . $foto_profil)) {
-    $tampilan_foto = "uploads/" . $foto_profil;
-} elseif (!empty($foto_profil) && file_exists($foto_profil)) {
-    $tampilan_foto = $foto_profil;
-} else {
-    $tampilan_foto = ($gender == 'Pria') ? 'pria.png' : 'wanita.png';
+// 4. Statistik Botol (Kategori 1)
+$q_botol = $conn->query("SELECT SUM(jumlah_sampah) as total FROM setoran WHERE id_warga = $id_user AND id_kategori = 1");
+$res_botol = $q_botol->fetch_assoc();
+$total_botol = $res_botol['total'] ?? 0;
+
+// 5. Statistik Kaleng (Kategori 2)
+$q_kaleng = $conn->query("SELECT SUM(jumlah_sampah) as total FROM setoran WHERE id_warga = $id_user AND id_kategori = 2");
+$res_kaleng = $q_kaleng->fetch_assoc();
+$total_kaleng = $res_kaleng['total'] ?? 0;
+
+// 6. Logika Tampilan Foto Profil
+// Default awal berdasarkan gender
+$tampilan_foto = ($gender == 'Pria') ? 'pria.png' : 'wanita.png';
+
+if (!empty($foto_profil)) {
+    // Cek apakah file ada di folder uploads
+    if (file_exists("uploads/" . $foto_profil)) {
+        $tampilan_foto = "uploads/" . $foto_profil;
+    }
+    // Cek jika path tersimpan lengkap di database
+    elseif (file_exists($foto_profil)) {
+        $tampilan_foto = $foto_profil;
+    }
 }
 ?>
 
