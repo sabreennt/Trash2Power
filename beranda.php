@@ -239,7 +239,7 @@ if (!empty($foto_profil)) {
                 </div>
             </div>
 
-            <div class="stat-card bg-[#E5E7EB] border-none shadow-sm cursor-pointer transition group">
+            <a href="hasil_riwayat.php" class="stat-card bg-[#E5E7EB] border-none shadow-sm cursor-pointer transition group hover:bg-[#D1D5DB] no-underline">
                 <div class="w-16 h-16 flex items-center justify-center">
                     <img src="riwayat.png" alt="Riwayat"
                         class="w-12 h-12 object-contain"
@@ -247,11 +247,11 @@ if (!empty($foto_profil)) {
                 </div>
                 <div>
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Riwayat</p>
-                    <h3 class="text-xl font-black text-gray-900 group-hover:text-[#F7D678] group-active:text-[#F7D678] transition-colors duration-200">
-                        Lihat Semua
+                    <h3 class="text-xl font-black text-gray-900 group-hover:text-[#34A853] transition-colors duration-200">
+                        Lihat Semua →
                     </h3>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="info-box-custom">
